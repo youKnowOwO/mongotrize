@@ -2,7 +2,7 @@ import type { MongoClientOptions, Db, Collection } from "mongodb";
 export interface MongoMapPayload {
     readonly uri: string;
     readonly name: string;
-    readonly collectionMame: string;
+    readonly collectionName: string;
     readonly cache: boolean;
     readonly options: MongoClientOptions;
 }

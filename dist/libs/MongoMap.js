@@ -15,7 +15,7 @@ class MongoMap {
     async connect() {
         const result = this.ready ? this.client : await this.client.connect();
         this.database = result.db(this.payload.name);
-        this.collection = this.database.collection(this.payload.collectionMame);
+        this.collection = this.database.collection(this.payload.collectionName);
         const values = await this.all(false);
         this.size = values.length;
         if (this.cache)
