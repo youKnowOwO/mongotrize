@@ -6,6 +6,7 @@ export declare class MongoMap<V> {
     readonly cache?: Map<string, V>;
     database?: MongoDatabase;
     collection?: MongoCollection<MongoValue<V>>;
+    defaultValue?: V;
     size: number;
     constructor(payload: MongoMapPayload);
     get ready(): boolean;
@@ -16,4 +17,5 @@ export declare class MongoMap<V> {
     has(key: string): Promise<boolean>;
     all(useCache?: boolean): Promise<MongoValue<V>[]>;
     clear(): Promise<void>;
+    ensure(value: V): this;
 }

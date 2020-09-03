@@ -46,12 +46,16 @@ class MongoMap {
         return !!result.ok;
     }
     async get(key, useCache = true) {
+        let response;
         if (!this.ready)
             throw new Error("Database isn't ready");
         if (this.cache && useCache)
-            return this.cache.get(key);
-        const result = await this.collection.findOne({ key });
-        return result === null ? undefined : result.value;
+            response = this.cache.get(key);
+        else {
+            const result = await this.collection.findOne({ key });
+            response = result === null ? undefined : result.value;
+        }
+        return response || this.defaultValue;
     }
     async has(key) {
         if (!this.ready)
@@ -74,6 +78,10 @@ class MongoMap {
         if (this.cache)
             this.cache.clear();
         await this.collection.deleteMany({});
+    }
+    ensure(value) {
+        this.defaultValue = value;
+        return this;
     }
 }
 exports.MongoMap = MongoMap;
