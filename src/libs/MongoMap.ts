@@ -6,6 +6,7 @@ export class MongoMap<V> {
     public readonly cache?: Map<string, V> = this.payload.cache ? new Map() : undefined;
     public database?: MongoDatabase;
     public collection?: MongoCollection<MongoValue<V>>;
+    public defaultValue?: V;
     public size = 0;
     public constructor(public payload: MongoMapPayload) {}
 
@@ -42,10 +43,14 @@ export class MongoMap<V> {
     }
 
     public async get(key: string, useCache = true): Promise<V|void> {
+        let response: V|void;
         if (!this.ready) throw new Error("Database isn't ready");
-        if (this.cache && useCache) return this.cache.get(key);
-        const result = await this.collection!.findOne({ key });
-        return result === null ? undefined : result.value;
+        if (this.cache && useCache) response = this.cache.get(key);
+        else {
+            const result = await this.collection!.findOne({ key });
+            response = result === null ? undefined : result.value;
+        }
+        return response || this.defaultValue;
     }
 
     public async has(key: string): Promise<boolean> {
@@ -65,5 +70,10 @@ export class MongoMap<V> {
         if (!this.ready) throw new Error("Database isn't ready");
         if (this.cache) this.cache.clear();
         await this.collection!.deleteMany({});
+    }
+
+    public ensure(value: V): this {
+        this.defaultValue = value;
+        return this;
     }
 }
