@@ -1,0 +1,9 @@
+{
+    "extends": "@youKnowOwO/eslint-config/tsconfig",
+    "compilerOptions": {
+        "outDir": "dist",
+        "sourceMap": true,
+        "declaration": true
+    },
+    "include": ["src"]
+}
