@@ -1,6 +1,6 @@
 import { MongoMapPayload, MongoDatabase, MongoCollection, MongoValue } from "../interfaces";
 import { MongoClient } from "mongodb";
-export default class MongoMap<V> {
+export declare class MongoMap<V> {
     payload: MongoMapPayload;
     readonly client: MongoClient;
     readonly cache?: Map<string, V>;

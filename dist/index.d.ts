@@ -1,2 +1,2 @@
-export { default as MongoMap } from "./libs/MongoMap";
+export * from "./libs";
 export * from "./interfaces";

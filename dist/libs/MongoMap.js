@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MongoMap = void 0;
 const mongodb_1 = require("mongodb");
 class MongoMap {
     constructor(payload) {
@@ -75,5 +76,5 @@ class MongoMap {
         await this.collection.deleteMany({});
     }
 }
-exports.default = MongoMap;
+exports.MongoMap = MongoMap;
 //# sourceMappingURL=MongoMap.js.map
