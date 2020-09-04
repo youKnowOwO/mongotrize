@@ -7,20 +7,25 @@ export class MongoMap<V> {
     public database?: MongoDatabase;
     public collection?: MongoCollection<MongoValue<V>>;
     public defaultValue?: V;
-    public size = 0;
     public constructor(public payload: MongoMapPayload) {}
 
     public get ready(): boolean {
         return this.client.isConnected();
     }
 
+    public async size(): Promise<number> {
+        const values = await this.all();
+        return values.length;
+    }
+
     public async connect(): Promise<this> {
         const result = this.ready ? this.client : await this.client.connect();
         this.database = result.db(this.payload.name);
         this.collection = this.database.collection(this.payload.collectionName);
-        const values = await this.all(false);
-        this.size = values.length;
-        if (this.cache) for (const value of values) this.cache.set(value.key, value.value);
+        if (this.cache) {
+            const values = await this.all();
+            for (const { key, value } of values) this.cache.set(key, value);
+        }
         return this;
     }
 
@@ -30,7 +35,6 @@ export class MongoMap<V> {
         const result = await this.collection!.findOneAndUpdate({ key }, {
             $set: { key, value }
         }, { upsert: true });
-        if (result.ok) this.size++;
         return !!result.ok;
     }
 
@@ -38,7 +42,6 @@ export class MongoMap<V> {
         if (!this.ready) throw new Error("Database isn't ready");
         if (this.cache) this.cache.delete(key);
         const result = await this.collection!.findOneAndDelete({ key });
-        if (result.ok) this.size--;
         return !!result.ok;
     }
 
@@ -70,6 +73,29 @@ export class MongoMap<V> {
         if (!this.ready) throw new Error("Database isn't ready");
         if (this.cache) this.cache.clear();
         await this.collection!.deleteMany({});
+    }
+
+    public async filter(callback: (value: V, key: string, index: number) => boolean): Promise<MongoValue<V>[]> {
+        const values = await this.all();
+        return values.filter((x, i) => callback.call(this, x.value, x.key, i));
+    }
+
+    public async map<T>(callback: (value: V, key: string, index: number) => T): Promise<T[]> {
+        const values = await this.all();
+        return values.map((x, i) => callback.call(this, x.value, x.key, i));
+    }
+
+    public async find(callback: (value: V) => boolean): Promise<V|void> {
+        const values = await this.filter(x => callback.call(this, x));
+        if (values[0]) return values[0].value;
+    }
+
+    public async first(): Promise<MongoValue<V>>;
+    public async first(size: number): Promise<MongoValue<V>[]>;
+    public async first(size = 1): Promise<any> {
+        const values = await this.all();
+        const value = [...values].splice(0, size);
+        if (size === 1) return value[0];
     }
 
     public ensure(value: V): this {
