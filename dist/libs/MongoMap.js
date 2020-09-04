@@ -7,20 +7,23 @@ class MongoMap {
         this.payload = payload;
         this.client = new mongodb_1.MongoClient(this.payload.uri, this.payload.options);
         this.cache = this.payload.cache ? new Map() : undefined;
-        this.size = 0;
     }
     get ready() {
         return this.client.isConnected();
+    }
+    async size() {
+        const values = await this.all();
+        return values.length;
     }
     async connect() {
         const result = this.ready ? this.client : await this.client.connect();
         this.database = result.db(this.payload.name);
         this.collection = this.database.collection(this.payload.collectionName);
-        const values = await this.all(false);
-        this.size = values.length;
-        if (this.cache)
-            for (const value of values)
-                this.cache.set(value.key, value.value);
+        if (this.cache) {
+            const values = await this.all();
+            for (const { key, value } of values)
+                this.cache.set(key, value);
+        }
         return this;
     }
     async set(key, value) {
@@ -31,8 +34,6 @@ class MongoMap {
         const result = await this.collection.findOneAndUpdate({ key }, {
             $set: { key, value }
         }, { upsert: true });
-        if (result.ok)
-            this.size++;
         return !!result.ok;
     }
     async delete(key) {
@@ -41,8 +42,6 @@ class MongoMap {
         if (this.cache)
             this.cache.delete(key);
         const result = await this.collection.findOneAndDelete({ key });
-        if (result.ok)
-            this.size--;
         return !!result.ok;
     }
     async get(key, useCache = true) {
@@ -78,6 +77,25 @@ class MongoMap {
         if (this.cache)
             this.cache.clear();
         await this.collection.deleteMany({});
+    }
+    async filter(callback) {
+        const values = await this.all();
+        return values.filter((x, i) => callback.call(this, x.value, x.key, i));
+    }
+    async map(callback) {
+        const values = await this.all();
+        return values.map((x, i) => callback.call(this, x.value, x.key, i));
+    }
+    async find(callback) {
+        const values = await this.filter(x => callback.call(this, x));
+        if (values[0])
+            return values[0].value;
+    }
+    async first(size = 1) {
+        const values = await this.all();
+        const value = [...values].splice(0, size);
+        if (size === 1)
+            return value[0];
     }
     ensure(value) {
         this.defaultValue = value;

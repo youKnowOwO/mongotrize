@@ -7,9 +7,9 @@ export declare class MongoMap<V> {
     database?: MongoDatabase;
     collection?: MongoCollection<MongoValue<V>>;
     defaultValue?: V;
-    size: number;
     constructor(payload: MongoMapPayload);
     get ready(): boolean;
+    size(): Promise<number>;
     connect(): Promise<this>;
     set(key: string, value: V): Promise<boolean>;
     delete(key: string): Promise<boolean>;
@@ -17,5 +17,10 @@ export declare class MongoMap<V> {
     has(key: string): Promise<boolean>;
     all(useCache?: boolean): Promise<MongoValue<V>[]>;
     clear(): Promise<void>;
+    filter(callback: (value: V, key: string, index: number) => boolean): Promise<MongoValue<V>[]>;
+    map<T>(callback: (value: V, key: string, index: number) => T): Promise<T[]>;
+    find(callback: (value: V) => boolean): Promise<V | void>;
+    first(): Promise<MongoValue<V>>;
+    first(size: number): Promise<MongoValue<V>[]>;
     ensure(value: V): this;
 }
