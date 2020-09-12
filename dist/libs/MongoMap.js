@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MongoMap = void 0;
 const mongodb_1 = require("mongodb");
+const util_1 = require("../util");
 class MongoMap {
     constructor(payload) {
         this.payload = payload;
@@ -26,9 +27,11 @@ class MongoMap {
         }
         return this;
     }
-    async set(key, value) {
+    async set(key, value, prop) {
         if (!this.ready)
             throw new Error("Database isn't ready");
+        if (prop)
+            return this.setByProp(key, prop, value);
         if (this.cache)
             this.cache.set(key, value);
         const result = await this.collection.findOneAndUpdate({ key }, {
@@ -36,18 +39,22 @@ class MongoMap {
         }, { upsert: true });
         return !!result.ok;
     }
-    async delete(key) {
+    async delete(key, prop) {
         if (!this.ready)
             throw new Error("Database isn't ready");
+        if (prop)
+            return this.deleteByProp(key, prop);
         if (this.cache)
             this.cache.delete(key);
         const result = await this.collection.findOneAndDelete({ key });
         return !!result.ok;
     }
-    async get(key, useCache = true) {
+    async get(key, prop, useCache = true) {
         let response;
         if (!this.ready)
             throw new Error("Database isn't ready");
+        if (prop)
+            return this.getByProp(key, prop, useCache);
         if (this.cache && useCache)
             response = this.cache.get(key);
         else {
@@ -100,6 +107,20 @@ class MongoMap {
     ensure(value) {
         this.defaultValue = value;
         return this;
+    }
+    async getByProp(key, prop, useCache) {
+        const result = await this.get(key, undefined, useCache);
+        return util_1.getProp(result, prop);
+    }
+    async setByProp(key, prop, value) {
+        let result = await this.get(key);
+        result = util_1.setProp(result || {}, prop, value, true);
+        return this.set(key, result);
+    }
+    async deleteByProp(key, prop) {
+        const result = await this.get(key);
+        util_1.deleteProp(result, prop);
+        return this.set(key, result);
     }
 }
 exports.MongoMap = MongoMap;
