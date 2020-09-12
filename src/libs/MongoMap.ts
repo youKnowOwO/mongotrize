@@ -1,5 +1,6 @@
 import { MongoMapPayload, MongoDatabase, MongoCollection, MongoValue } from "../interfaces";
 import { MongoClient } from "mongodb";
+import { getProp, setProp, deleteProp } from "../util";
 
 export class MongoMap<V> {
     public readonly client = new MongoClient(this.payload.uri, this.payload.options);
@@ -29,8 +30,12 @@ export class MongoMap<V> {
         return this;
     }
 
-    public async set(key: string, value: V): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public async set(key: string, value: any, prop: string): Promise<boolean>
+    public async set(key: string, value: V, prop?: undefined): Promise<boolean>
+    public async set(key: string, value: V, prop?: string): Promise<boolean> {
         if (!this.ready) throw new Error("Database isn't ready");
+        if (prop) return this.setByProp(key, prop, value);
         if (this.cache) this.cache.set(key, value);
         const result = await this.collection!.findOneAndUpdate({ key }, {
             $set: { key, value }
@@ -38,16 +43,20 @@ export class MongoMap<V> {
         return !!result.ok;
     }
 
-    public async delete(key: string): Promise<boolean> {
+    public async delete(key: string, prop?: string): Promise<boolean> {
         if (!this.ready) throw new Error("Database isn't ready");
+        if (prop) return this.deleteByProp(key, prop);
         if (this.cache) this.cache.delete(key);
         const result = await this.collection!.findOneAndDelete({ key });
         return !!result.ok;
     }
 
-    public async get(key: string, useCache = true): Promise<V|void> {
+    public async get(key: string, prop?: undefined, useCache?: boolean): Promise<V|void>;
+    public async get(key: string, prop: string, useCache?: boolean): Promise<any>;
+    public async get(key: string, prop?: string, useCache = true): Promise<any> {
         let response: V|void;
         if (!this.ready) throw new Error("Database isn't ready");
+        if (prop) return this.getByProp(key, prop, useCache);
         if (this.cache && useCache) response = this.cache.get(key);
         else {
             const result = await this.collection!.findOne({ key });
@@ -101,5 +110,22 @@ export class MongoMap<V> {
     public ensure(value: V): this {
         this.defaultValue = value;
         return this;
+    }
+
+    private async getByProp(key: string, prop: string, useCache: boolean): Promise<any> {
+        const result = await this.get(key, undefined, useCache);
+        return getProp(result, prop);
+    }
+
+    private async setByProp(key: string, prop: string, value: any): Promise<boolean> {
+        let result: any = await this.get(key);
+        result = setProp(result || {}, prop, value, true);
+        return this.set(key, result);
+    }
+
+    private async deleteByProp(key: string, prop: string): Promise<boolean> {
+        const result: any = await this.get(key);
+        deleteProp(result, prop);
+        return this.set(key, result);
     }
 }
