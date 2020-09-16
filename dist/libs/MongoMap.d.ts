@@ -25,6 +25,7 @@ export declare class MongoMap<V> {
     first(): Promise<MongoValue<V>>;
     first(size: number): Promise<MongoValue<V>[]>;
     ensure(value: V): this;
+    private getDefaultValue;
     private getByProp;
     private setByProp;
     private deleteByProp;

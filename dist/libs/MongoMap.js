@@ -61,7 +61,7 @@ class MongoMap {
             const result = await this.collection.findOne({ key });
             response = result === null ? undefined : result.value;
         }
-        return response || this.defaultValue;
+        return response || this.getDefaultValue();
     }
     async has(key) {
         if (!this.ready)
@@ -107,6 +107,11 @@ class MongoMap {
     ensure(value) {
         this.defaultValue = value;
         return this;
+    }
+    getDefaultValue() {
+        if (typeof this.defaultValue === "object")
+            return util_1.clone(this.defaultValue);
+        return this.defaultValue;
     }
     async getByProp(key, prop, useCache) {
         const result = await this.get(key, undefined, useCache);

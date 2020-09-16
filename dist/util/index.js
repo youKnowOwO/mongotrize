@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseDotString = exports.deleteProp = exports.setProp = exports.getProp = void 0;
+exports.clone = exports.parseDotString = exports.deleteProp = exports.setProp = exports.getProp = void 0;
 function getProp(obj, properties) {
     const props = parseDotString(properties);
     for (const prop of props)
@@ -45,4 +45,15 @@ function parseDotString(properties) {
     return result.map(x => x.replace(/\\\./g, "."));
 }
 exports.parseDotString = parseDotString;
+function clone(obj) {
+    const cloned = obj instanceof Array ? [] : {};
+    for (const key of Object.keys(obj)) {
+        let value = obj[key];
+        if (typeof value === "object" && value !== null)
+            value = clone(value);
+        cloned[key] = value;
+    }
+    return cloned;
+}
+exports.clone = clone;
 //# sourceMappingURL=index.js.map
