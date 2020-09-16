@@ -197,8 +197,8 @@
 
 "@youKnowOwO/eslint-config@github:youKnowOwO/eslint-config#build":
   version "0.0.3"
-  uid "802fec5fad389422bd440a811ea1680af1c6d3b9"
-  resolved "https://codeload.github.com/youKnowOwO/eslint-config/tar.gz/802fec5fad389422bd440a811ea1680af1c6d3b9"
+  uid ff1a58d3692a65c2a2cadd0d0a62c2ca88d850f0
+  resolved "https://codeload.github.com/youKnowOwO/eslint-config/tar.gz/ff1a58d3692a65c2a2cadd0d0a62c2ca88d850f0"
 
 acorn-jsx@^5.2.0:
   version "5.2.0"
