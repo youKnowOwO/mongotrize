@@ -1,6 +1,6 @@
 import { MongoMapPayload, MongoDatabase, MongoCollection, MongoValue } from "../interfaces";
 import { MongoClient } from "mongodb";
-import { getProp, setProp, deleteProp } from "../util";
+import { getProp, setProp, deleteProp, clone } from "../util";
 
 export class MongoMap<V> {
     public readonly client = new MongoClient(this.payload.uri, this.payload.options);
@@ -62,7 +62,7 @@ export class MongoMap<V> {
             const result = await this.collection!.findOne({ key });
             response = result === null ? undefined : result.value;
         }
-        return response || this.defaultValue;
+        return response || this.getDefaultValue();
     }
 
     public async has(key: string): Promise<boolean> {
@@ -110,6 +110,12 @@ export class MongoMap<V> {
     public ensure(value: V): this {
         this.defaultValue = value;
         return this;
+    }
+
+    private getDefaultValue(): V | void {
+        // @ts-expect-error 2769
+        if (typeof this.defaultValue === "object") return clone(this.defaultValue);
+        return this.defaultValue;
     }
 
     private async getByProp(key: string, prop: string, useCache: boolean): Promise<any> {

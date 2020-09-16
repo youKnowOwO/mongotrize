@@ -36,3 +36,16 @@ export function parseDotString(properties: string): string[] {
     if (!result) return [];
     return result.map(x => x.replace(/\\\./g, "."));
 }
+
+export function clone<T extends never[]>(obj: T): T;
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function clone<K extends object>(obj: K): K;
+export function clone(obj: any): any {
+    const cloned: any = obj instanceof Array ? [] : {};
+    for(const key of Object.keys(obj)) {
+        let value = obj[key];
+        if (typeof value === "object" && value !== null) value = clone(value);
+        cloned[key] = value;
+    }
+    return cloned;
+}
