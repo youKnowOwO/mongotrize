@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/mongodb": "^3.5.27",
     "@types/node": "^14.10.2",
-    "@typescript-eslint/eslint-plugin": "^4.1.1",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.1.1",
     "@youKnowOwO/eslint-config": "github:youKnowOwO/eslint-config#build",
     "eslint": "^7.9.0",
